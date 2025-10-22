@@ -36,3 +36,6 @@ Issues = "https://github.com/Ryan7t/wanyi-watermark/issues"
 
 [project.scripts]
 wanyi-watermark = "douyin_mcp_server.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["douyin_mcp_server"]
