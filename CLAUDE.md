@@ -34,7 +34,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 资源接口已在当前版本移除，统一通过上述工具完成解析。
 
 **提示词 (Prompts):**
-- `douyin_text_extraction_guide`: 使用指南
+- `watermark_removal_guide`: 使用指南（含面向用户的纯文本展示格式约定）
+
+**输出格式约定（重要，勿改）:**
+- 所有解析工具（`parse_xhs_link` / `parse_douyin_link` / `parse_generic_link`）一律返回【完整 JSON 字符串】（含 platform/type/title/caption/url/images 等全部字段），**不在工具内部拍平成纯文本**。
+- “纯文本（标题/文案/视频图片链接，禁止 Markdown、不省略不截断）”是 **LLM 回复最终用户时的展示格式**，由各工具 docstring 与 `watermark_removal_guide` 提示词指示 LLM 完成，**不是工具的返回值格式**。
+- 数据流：工具 ──返回完整 JSON──▶ LLM ──整理成纯文本──▶ 用户。
+- 注：曾把工具返回值直接改成纯文本（`_format_plain_result`）会丢失结构化字段、且与报错 JSON 不一致，已回退，后续请保持 JSON 返回。
 
 ### 3. 关键技术实现
 
@@ -127,6 +133,6 @@ uvx douyin-mcp-server
 ## 代码结构设计原则
 
 1. **职责分离**: 处理器类专注于平台特定逻辑,MCP 服务器负责协议适配
-2. **错误处理**: 所有异常向上抛出,由 MCP 工具层统一处理并返回 JSON 格式
+2. **错误处理与输出格式**: 所有异常向上抛出,由 MCP 工具层统一捕获;**所有工具(成功与失败)统一返回 JSON 字符串**。纯文本仅为 LLM 面向用户的展示格式(详见上文"输出格式约定"),切勿改成工具直接返回纯文本
 3. **异步支持**: 下载操作使用异步接口,支持进度报告 (ctx.report_progress)
 4. **灵活配置**: 通过构造函数参数和环境变量配置,避免硬编码
